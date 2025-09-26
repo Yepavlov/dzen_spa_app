@@ -18,6 +18,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from captcha import views as captcha_views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -25,3 +27,6 @@ urlpatterns = [
     path("api/captcha/image/<key>/", captcha_views.captcha_image, name="captcha-image"),
     path("api/captcha/refresh/", captcha_views.captcha_refresh, name="captcha-refresh"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

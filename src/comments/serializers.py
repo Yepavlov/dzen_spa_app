@@ -3,9 +3,13 @@ from typing import Any
 from rest_framework import serializers
 from captcha.models import CaptchaStore
 from .models import Comment
+import bleach
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    ALLOWED_TAGS = {"a", "code", "i", "strong"}
+    ALLOWED_ATTRIBUTES = {"a": ["href", "title"]}
+
     replies = serializers.SerializerMethodField()
 
     captcha_key = serializers.CharField(write_only=True, required=True)
@@ -22,6 +26,8 @@ class CommentSerializer(serializers.ModelSerializer):
             "created_at",
             "parent",
             "replies",
+            "image",
+            "text_file",
             "captcha_key",
             "captcha_value",
         ]
@@ -35,7 +41,7 @@ class CommentSerializer(serializers.ModelSerializer):
         serializer = self.__class__(queryset, many=True)
         return serializer.data
 
-    def validate(self, data: dict):
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         """Method for validating the CAPTCHA."""
         captcha_key = data.get("captcha_key")
         captcha_value = data.get("captcha_value", "").lower()
@@ -50,8 +56,19 @@ class CommentSerializer(serializers.ModelSerializer):
 
         return super().validate(data)
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Comment:
         """Method to remove CAPTCHA fields before saving the comment."""
+        validated_data = self._clean_text_from_html(validated_data)
         validated_data.pop("captcha_key", None)
         validated_data.pop("captcha_value", None)
         return super().create(validated_data)
+
+    def _clean_text_from_html(self, validated_data: dict[str, Any]) -> dict[str, Any]:
+        """Cleans ‘text’ field from dangerous HTML."""
+        validated_data["text"] = bleach.clean(
+            validated_data["text"],
+            tags=self.ALLOWED_TAGS,
+            attributes=self.ALLOWED_ATTRIBUTES,
+            strip=True,
+        )
+        return validated_data
