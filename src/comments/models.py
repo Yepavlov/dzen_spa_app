@@ -3,7 +3,6 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from comments.utils.validators import validate_text_file_size
-from config.celery import app as celery_app
 
 
 class Comment(models.Model):
@@ -36,4 +35,6 @@ class Comment(models.Model):
         is_new = self._state.adding
         super().save(*args, **kwargs)
         if is_new and self.image:
-            celery_app.send_task("comments.tasks.resize_image", args=[self.pk])
+            from comments.tasks import resize_image
+
+            resize_image.delay(self.pk)

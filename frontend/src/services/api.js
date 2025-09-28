@@ -40,6 +40,10 @@ export default {
         return apiClient.get('/api/captcha/');
     },
   createComment(data) {
-    return apiClient.post('/api/comments/', data);
+    return apiClient.post('/api/comments/', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
   }
 };

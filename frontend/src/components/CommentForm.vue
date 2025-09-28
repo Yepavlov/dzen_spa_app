@@ -7,6 +7,8 @@ const captchaKey = ref('');
 const captchaValue = ref('');
 const captchaImage = ref('');
 const error = ref(null);
+const imageFile = ref(null);
+const textFile = ref(null);
 
 const emit = defineEmits(['comment-posted']);
 
@@ -20,16 +22,39 @@ const fetchCaptcha = async () => {
   }
 };
 
+const handleImageChange = (e) => {
+  imageFile.value = e.target.files[0];
+};
+
+const handleTextFileChange = (e) => {
+  textFile.value = e.target.files[0];
+};
+
+
 const handleSubmit = async () => {
   error.value = null;
+
+  const formData = new FormData();
+  formData.append('text', text.value);
+  formData.append('captcha_key', captchaKey.value);
+  formData.append('captcha_value', captchaValue.value);
+  if (imageFile.value) {
+    formData.append('image', imageFile.value);
+  }
+  if (textFile.value) {
+    formData.append('text_file', textFile.value);
+  }
+
   try {
-    await api.createComment({
-      text: text.value,
-      captcha_key: captchaKey.value,
-      captcha_value: captchaValue.value,
-    });
+    await api.createComment(formData); // Теперь передаем formData
     text.value = '';
     captchaValue.value = '';
+    imageFile.value = null;
+    textFile.value = null;
+    // Очищаем инпуты файлов
+    document.getElementById('image-upload').value = '';
+    document.getElementById('text-file-upload').value = '';
+
     emit('comment-posted');
     fetchCaptcha();
   } catch (e) {
@@ -47,6 +72,18 @@ onMounted(fetchCaptcha);
     <h3>Leave a comment</h3>
     <form @submit.prevent="handleSubmit">
       <textarea v-model="text" placeholder="Your comment..." required></textarea>
+
+      <div class="file-inputs">
+        <div>
+          <label for="image-upload">Add an image:</label>
+          <input id="image-upload" type="file" @change="handleImageChange" accept="image/png, image/jpeg, image/gif">
+        </div>
+        <div>
+          <label for="text-file-upload">Add a text file:</label>
+          <input id="text-file-upload" type="file" @change="handleTextFileChange" accept=".txt">
+        </div>
+      </div>
+
       <div class="captcha-container" v-if="captchaImage">
         <img :src="`http://localhost:8000${captchaImage}`" alt="CAPTCHA">
         <input type="text" v-model="captchaValue" placeholder="Enter the text from the image" required>
@@ -59,24 +96,10 @@ onMounted(fetchCaptcha);
 </template>
 
 <style scoped>
-.form-container {
-  margin-top: 2rem;
-  padding: 1rem;
-  border-top: 1px solid #ccc;
-}
-textarea {
-  width: 100%;
-  min-height: 100px;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-}
-.captcha-container {
+/* ... (остальные стили) */
+.file-inputs {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  justify-content: space-between;
   margin-bottom: 1rem;
-}
-.error-message {
-  color: red;
 }
 </style>

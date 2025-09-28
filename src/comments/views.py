@@ -21,10 +21,15 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = CommentSerializer
-    queryset = Comment.objects.filter(parent__isnull=True)
+    # queryset = Comment.objects.filter(parent__isnull=True)
 
     filter_backends = [OrderingFilter]
     ordering_fields = ["author__username", "author__email", "created_at"]
+
+    def get_queryset(self):
+        if self.action == "list":
+            return Comment.objects.filter(parent__isnull=True)
+        return Comment.objects.all()
 
     def list(self, request, *arg, **kwargs):
         page = request.query_params.get("page", "1")
@@ -37,8 +42,14 @@ class CommentViewSet(viewsets.ModelViewSet):
             logger.info(f"'{cache_key}' found in cache. Serving from cache.")
             return response.Response(cached_data)
 
-        logger.info(f"'{cache_key}' not found in cache. Querying database.")
-        return super().list(request, *arg, **kwargs)
+        response_data = super().list(request, *arg, **kwargs)
+        cache.set(cache_key, response_data.data, timeout=60 * 15)
+        return response_data
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return response.Response(serializer.data)
 
 
 def get_captcha(request):

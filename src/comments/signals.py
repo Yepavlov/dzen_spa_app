@@ -11,7 +11,7 @@ from .serializers import CommentSerializer
 def comment_handler(sender, instance, created, **kwargs):
     """Clears the 'comment_list' cache whenever a new comment is created."""
     if created:
-        cache.delete("comment_list")
+        cache.delete_pattern("comment_list_*")
         channel_layer = get_channel_layer()
         serializer = CommentSerializer(instance)
 
