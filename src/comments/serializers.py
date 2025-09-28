@@ -6,7 +6,32 @@ from .models import Comment
 import bleach
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentListSerializer(serializers.ModelSerializer):
+    """Serializer for a list of comments (without nested replies)."""
+
+    author_name = serializers.CharField(source="author.username", read_only=True)
+    author_email = serializers.EmailField(source="author.email", read_only=True)
+    replies_count = serializers.IntegerField(source="replies.count", read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = [
+            "id",
+            "author_name",
+            "author_email",
+            "home_page",
+            "text",
+            "created_at",
+            "parent",
+            "image",
+            "text_file",
+            "replies_count",
+        ]
+
+
+class CommentDetailSerializer(serializers.ModelSerializer):
+    """Serializer for detailed viewing of comments (with nested replies)."""
+
     author_name = serializers.CharField(source="author.username", read_only=True)
     author_email = serializers.EmailField(source="author.email", read_only=True)
 

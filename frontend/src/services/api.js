@@ -30,6 +30,9 @@ export default {
   getComments(params) {
     return apiClient.get('/api/comments/', { params });
   },
+  getCommentDetails(id) {
+    return apiClient.get(`/api/comments/${id}/`);
+  },
   registerUser(data) {
     return apiClient.post('/auth/users/', data);
   },

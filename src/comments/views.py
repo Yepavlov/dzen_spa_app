@@ -9,7 +9,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from .models import Comment
-from .serializers import CommentSerializer
+from .serializers import CommentListSerializer, CommentDetailSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +20,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     """
 
     permission_classes = [IsAuthenticatedOrReadOnly]
-    serializer_class = CommentSerializer
-    # queryset = Comment.objects.filter(parent__isnull=True)
 
     filter_backends = [OrderingFilter]
     ordering_fields = ["author__username", "author__email", "created_at"]
@@ -30,6 +28,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return Comment.objects.filter(parent__isnull=True)
         return Comment.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return CommentListSerializer
+        return CommentDetailSerializer
 
     def list(self, request, *arg, **kwargs):
         page = request.query_params.get("page", "1")

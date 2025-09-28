@@ -12,6 +12,14 @@ const textFile = ref(null);
 
 const emit = defineEmits(['comment-posted']);
 
+const props = defineProps({
+  parentId: {
+    type: Number,
+    default: null
+  }
+});
+
+
 const fetchCaptcha = async () => {
   try {
     const response = await api.getCaptcha();
@@ -38,6 +46,12 @@ const handleSubmit = async () => {
   formData.append('text', text.value);
   formData.append('captcha_key', captchaKey.value);
   formData.append('captcha_value', captchaValue.value);
+
+
+  if (props.parentId) {
+    formData.append('parent', props.parentId);
+  }
+
   if (imageFile.value) {
     formData.append('image', imageFile.value);
   }
@@ -46,14 +60,16 @@ const handleSubmit = async () => {
   }
 
   try {
-    await api.createComment(formData); // Теперь передаем formData
+    await api.createComment(formData);
     text.value = '';
     captchaValue.value = '';
     imageFile.value = null;
     textFile.value = null;
-    // Очищаем инпуты файлов
-    document.getElementById('image-upload').value = '';
-    document.getElementById('text-file-upload').value = '';
+
+    const imageInput = document.getElementById('image-upload');
+    if (imageInput) imageInput.value = '';
+    const textFileInput = document.getElementById('text-file-upload');
+    if (textFileInput) textFileInput.value = '';
 
     emit('comment-posted');
     fetchCaptcha();
@@ -96,7 +112,6 @@ onMounted(fetchCaptcha);
 </template>
 
 <style scoped>
-/* ... (остальные стили) */
 .file-inputs {
   display: flex;
   justify-content: space-between;
