@@ -21,11 +21,16 @@ from captcha import views as captcha_views
 from django.conf import settings
 from django.conf.urls.static import static
 
+from comments.views import get_captcha
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("comments.urls")),
+    path("api/captcha/", get_captcha, name="get-captcha"),
     path("api/captcha/image/<key>/", captcha_views.captcha_image, name="captcha-image"),
     path("api/captcha/refresh/", captcha_views.captcha_refresh, name="captcha-refresh"),
+    path("auth/", include("djoser.urls")),
+    path("auth/", include("djoser.urls.jwt")),
 ]
 
 if settings.DEBUG:

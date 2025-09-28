@@ -7,6 +7,9 @@ import bleach
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source="author.username", read_only=True)
+    author_email = serializers.EmailField(source="author.email", read_only=True)
+
     ALLOWED_TAGS = {"a", "code", "i", "strong"}
     ALLOWED_ATTRIBUTES = {"a": ["href", "title"]}
 
@@ -19,8 +22,8 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = [
             "id",
-            "user_name",
-            "email",
+            "author_name",
+            "author_email",
             "home_page",
             "text",
             "created_at",
@@ -31,7 +34,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "captcha_key",
             "captcha_value",
         ]
-        read_only_fields = ["id", "created_at", "replies"]
+        read_only_fields = ["id", "created_at", "replies", "author_name", "author_email"]
 
     def get_replies(self, obj: Comment) -> list[dict[str, Any]]:
         """
@@ -58,6 +61,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data: dict[str, Any]) -> Comment:
         """Method to remove CAPTCHA fields before saving the comment."""
+        validated_data["author"] = self.context["request"].user
         validated_data = self._clean_text_from_html(validated_data)
         validated_data.pop("captcha_key", None)
         validated_data.pop("captcha_value", None)
