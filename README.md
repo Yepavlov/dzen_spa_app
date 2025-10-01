@@ -46,21 +46,35 @@ To get a local copy up and running, follow these simple steps.
 
 Make sure you have Docker and Docker Compose installed on your machine.
 
-* [Docker Desktop Installation Guide](https://docs.docker.com/get-docker/)
+* Git
+
+* Docker & Docker Compose
+
+* Node.js (v18+ LTS recommended) and npm
 
 ### Installation
 
 1.  **Clone the repository:**
     ```sh
-    git clone [https://github.com/Yepavlov/dzen_spa_app.git]
+    git clone https://github.com/Yepavlov/dzen_spa_app.git
     cd dzen_spa_app
     ```
 
 2.  **Build and run the Docker containers:**
     This command will build the images and start all services (web server, Celery worker, Redis).
     ```sh
-    docker-compose up --build
+    docker-compose up --build web redis worker
     ```
+    The backend API will be available at http://localhost:8000.
+
+    In your second terminal, start the Vue.js development server:
+
+    ```sh
+    cd frontend
+    npm install
+    npm run dev
+    ```
+    The frontend will be available at http://localhost:5173
 
 ---
 
